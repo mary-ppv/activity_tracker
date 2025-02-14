@@ -1,7 +1,6 @@
 package spentcalories
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -19,17 +18,25 @@ const (
 func parseTraining(data string) (int, string, time.Duration, error) {
 	slice := strings.Split(data, ",")
 	if len(slice) != 3 {
-		return 0, "", 0, errors.New("ошибка")
+		return 0, "", 0, fmt.Errorf("the number of parameters shoud be 3 ")
 	}
 
 	steps, err := strconv.Atoi(slice[0])
 	if err != nil {
-		return 0, "", 0, errors.New("ошибка")
+		return 0, "", 0, fmt.Errorf("can not convert string into integer")
+	}
+
+	if steps <= 0 {
+		return 0, "", 0, fmt.Errorf("can not use negative value of steps")
 	}
 
 	duration, err := time.ParseDuration(slice[2])
 	if err != nil {
-		return 0, "", 0, errors.New("ошибка")
+		return 0, "", 0, fmt.Errorf("can not convert string into time.Duration")
+	}
+
+	if duration <= 0 {
+		return 0, "", 0, fmt.Errorf("can not use negative value of duration")
 	}
 
 	return steps, slice[1], duration, nil
@@ -53,15 +60,15 @@ func meanSpeed(steps int, duration time.Duration) float64 {
 func TrainingInfo(data string, weight, height float64) string {
 	steps, typeTr, duration, err := parseTraining(data)
 	if err != nil {
-		return ""
+		return "неизвестный тип тренировки"
 	}
 
 	switch {
 	case typeTr == "Ходьба":
-		final := fmt.Sprintf("Тип тренировки: %s/nДлительность: %.2f ч./nДистанция: %.2f км./nСкорость: %.2f км/ч/nСожгли калорий: %.2f ", typeTr, duration.Hours(), distance(steps), meanSpeed(steps, duration), WalkingSpentCalories(steps, weight, height, duration))
+		final := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f ", typeTr, duration.Hours(), distance(steps), meanSpeed(steps, duration), WalkingSpentCalories(steps, weight, height, duration))
 		return final
 	case typeTr == "Бег":
-		final := fmt.Sprintf("Тип тренировки: %s/nДлительность: %.2f ч./nДистанция: %.2f км./nСкорость: %.2f км/ч/nСожгли калорий: %.2f ", typeTr, duration.Hours(), distance(steps), meanSpeed(steps, duration), RunningSpentCalories(steps, weight, duration))
+		final := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f ", typeTr, duration.Hours(), distance(steps), meanSpeed(steps, duration), RunningSpentCalories(steps, weight, duration))
 		return final
 	}
 	return "неизвестный тип тренировки"
